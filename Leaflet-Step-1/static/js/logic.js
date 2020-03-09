@@ -18,6 +18,16 @@ var geojsonMarkerOptions = {
     fillOpacity: 0.8
 };
 
+function getColor(d) {
+    return d > 5 ? 'red' :
+        d > 4 ? 'coral' :
+            d > 3 ? 'orange' :
+                d > 2 ? 'gold' :
+                    d > 1 ? 'green' :
+                        d > 0 ? 'lightgreen' :
+                            'black';
+}
+
 // Perform a GET request to the query URL
 d3.json(queryUrl, function (data) {
     // Once we get a response, send the data.features object to the createFeatures function
@@ -29,10 +39,9 @@ function createFeatures(earthquakeData) {
     // Define a function we want to run once for each feature in the features array
     // Give each feature a popup describing the place and time of the earthquake
     function onEachFeature(feature, layer) {
-        //console.log(feature.properties.mag);
 
 
-        console.log("mag:  ", feature.properties.mag, ", color:  ", geojsonMarkerOptions.fillColor, " ", feature.properties.place);
+        //console.log("mag:  ", feature.properties.mag, ", color:  ", geojsonMarkerOptions.fillColor, " ", feature.properties.place);
 
         layer.bindPopup("<h3>" + feature.properties.place +
             "</h3><hr><p>" + new Date(feature.properties.time) +
@@ -51,10 +60,10 @@ function createFeatures(earthquakeData) {
             geojsonMarkerOptions.radius = (feature.properties.mag * 3);
 
             if (feature.properties.mag > 5) {
-                geojsonMarkerOptions.fillColor = "purple";
+                geojsonMarkerOptions.fillColor = "red";
             }
             else if (feature.properties.mag > 4) {
-                geojsonMarkerOptions.fillColor = "lawngreen";
+                geojsonMarkerOptions.fillColor = "coral";
             }
             else if (feature.properties.mag > 3) {
                 geojsonMarkerOptions.fillColor = "orange";
@@ -63,10 +72,10 @@ function createFeatures(earthquakeData) {
                 geojsonMarkerOptions.fillColor = "gold";
             }
             else if (feature.properties.mag > 1) {
-                geojsonMarkerOptions.fillColor = "pink";
+                geojsonMarkerOptions.fillColor = "green";
             }
             else {
-                geojsonMarkerOptions.fillColor = "white";
+                geojsonMarkerOptions.fillColor = "lightgreen";
             }
 
             return L.circleMarker(latlng, geojsonMarkerOptions)
@@ -121,4 +130,27 @@ function createMap(earthquakes) {
     L.control.layers(baseMaps, overlayMaps, {
         collapsed: false
     }).addTo(myMap);
+
+
+
+    var legend = L.control({ position: 'bottomright' });
+
+    legend.onAdd = function (map) {
+
+        var div = L.DomUtil.create('div', 'info legend'),
+            grades = [0, 1, 2, 3, 4, 5],
+            labels = [];
+
+        // loop through our density intervals and generate a label with a colored square for each interval
+        for (var i = 0; i < grades.length; i++) {
+            div.innerHTML +=
+                '<i style="background-color:' + getColor(grades[i] + 1) + '"></i> ' +
+                grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] + '<br>' : '+');
+                
+        }
+
+        return div;
+    };
+
+    legend.addTo(myMap);
 }
